@@ -18,7 +18,6 @@ function fetchText(url, redirectsLeft = 5) {
         headers: { "User-Agent": UA },
       },
       (res) => {
-        // 301/302/303/307/308 を追従
         const isRedirect = [301, 302, 303, 307, 308].includes(res.statusCode);
         const loc = res.headers.location;
 
@@ -27,20 +26,19 @@ function fetchText(url, redirectsLeft = 5) {
             return reject(new Error("Too many redirects"));
           }
           const nextUrl = new URL(loc, u).toString();
-          res.resume(); // bodyを捨てる
-          return resolve({ status: res.statusCode, body: data, finalUrl: u.toString() });
+          res.resume();
+          return resolve(fetchText(nextUrl, redirectsLeft - 1));
         }
 
         let data = "";
         res.on("data", (c) => (data += c));
         res.on("end", () => {
-  resolve({
-    status: res.statusCode,
-    body: data,
-    finalUrl: u.toString(),
-  });
-});
-
+          resolve({
+            status: res.statusCode,
+            body: data,
+            finalUrl: u.toString(),
+          });
+        });
       }
     );
 
@@ -48,6 +46,7 @@ function fetchText(url, redirectsLeft = 5) {
     req.end();
   });
 }
+
 
 
 function postWebhook(webhookUrl, content) {
