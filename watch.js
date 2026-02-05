@@ -7,25 +7,41 @@ const WEBHOOK_URL = process.env.DISCORD_WEBHOOK;
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36";
 
-function fetchText(url) {
+function fetchText(url, redirectsLeft = 5) {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
-    const lib = u.protocol === "https:" ? https : null;
-    if (!lib) return reject(new Error("Only https supported"));
 
-    const req = lib.request(
-      url,
-      { headers: { "User-Agent": UA } },
+    const req = https.request(
+      u,
+      {
+        method: "GET",
+        headers: { "User-Agent": UA },
+      },
       (res) => {
+        // 301/302/303/307/308 を追従
+        const isRedirect = [301, 302, 303, 307, 308].includes(res.statusCode);
+        const loc = res.headers.location;
+
+        if (isRedirect && loc) {
+          if (redirectsLeft <= 0) {
+            return reject(new Error("Too many redirects"));
+          }
+          const nextUrl = new URL(loc, u).toString();
+          res.resume(); // bodyを捨てる
+          return resolve(fetchText(nextUrl, redirectsLeft - 1));
+        }
+
         let data = "";
         res.on("data", (c) => (data += c));
         res.on("end", () => resolve({ status: res.statusCode, body: data }));
       }
     );
+
     req.on("error", reject);
     req.end();
   });
 }
+
 
 function postWebhook(webhookUrl, content) {
   return new Promise((resolve, reject) => {
