@@ -68,14 +68,24 @@ function setLastState(n) {
 
 // HTML全体から「レス番号っぽい数字」を拾って最大値を取る（簡易）
 function extractMaxResNo(html) {
-  const matches = html.match(/(^|\n)(\d{1,5})\s/g) || [];
+  // パターン1: 5chのread.cgiでよくある <dt>123 ：... 形式
+  const dtMatches = [...html.matchAll(/<dt>\s*(\d{1,5})\s*[^0-9]/g)];
   let max = 0;
-  for (const m of matches) {
-    const n = parseInt(m.trim(), 10);
+  for (const m of dtMatches) {
+    const n = parseInt(m[1], 10);
+    if (!Number.isNaN(n)) max = Math.max(max, n);
+  }
+  if (max > 0) return max;
+
+  // パターン2: 念のため「レス番号っぽい」数字も広めに拾う
+  const generic = [...html.matchAll(/(^|\n)\s*(\d{1,5})\s*[：:]/g)];
+  for (const m of generic) {
+    const n = parseInt(m[2], 10);
     if (!Number.isNaN(n)) max = Math.max(max, n);
   }
   return max;
 }
+
 
 (async () => {
   if (!THREAD_URL || !WEBHOOK_URL) {
