@@ -110,7 +110,9 @@ function extractMaxResNo(html) {
   }
 
   const last = getLastState();
-  const { status, body } = await fetchText(THREAD_URL);
+  const { status, body, finalUrl } = await fetchText(THREAD_URL);
+  console.log("DEBUG finalUrl:", finalUrl);
+
 
   if (status !== 200 || !body) {
     console.error("Fetch failed:", status);
