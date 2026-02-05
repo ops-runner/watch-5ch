@@ -112,4 +112,10 @@ function extractMaxResNo(html) {
   } else {
     console.log("No new posts. last =", last, "max =", maxNo);
   }
+
+    if (maxNo === 0) {
+    console.log("DEBUG status:", status);
+    console.log("DEBUG body head:", body.slice(0, 300).replace(/\s+/g, " "));
+  }
+
 })();
