@@ -33,7 +33,14 @@ function fetchText(url, redirectsLeft = 5) {
 
         let data = "";
         res.on("data", (c) => (data += c));
-        res.on("end", () => resolve({ status: res.statusCode, body: data, finalUrl: u.toString() });
+        res.on("end", () => {
+  resolve({
+    status: res.statusCode,
+    body: data,
+    finalUrl: u.toString(),
+  });
+});
+
       }
     );
 
