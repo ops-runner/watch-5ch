@@ -28,12 +28,12 @@ function fetchText(url, redirectsLeft = 5) {
           }
           const nextUrl = new URL(loc, u).toString();
           res.resume(); // bodyを捨てる
-          return resolve(fetchText(nextUrl, redirectsLeft - 1));
+          return resolve({ status: res.statusCode, body: data, finalUrl: u.toString() });
         }
 
         let data = "";
         res.on("data", (c) => (data += c));
-        res.on("end", () => resolve({ status: res.statusCode, body: data }));
+        res.on("end", () => resolve({ status: res.statusCode, body: data, finalUrl: u.toString() });
       }
     );
 
